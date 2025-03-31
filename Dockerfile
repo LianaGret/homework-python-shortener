@@ -14,6 +14,8 @@ COPY pyproject.toml poetry.lock* ./
 
 RUN poetry config virtualenvs.create false
 
+RUN touch .force_rebuild3
+
 COPY src/ ./src/
 
 RUN poetry install --no-interaction --no-ansi --only main

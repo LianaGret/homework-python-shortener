@@ -1,17 +1,15 @@
 import datetime
 
-import pytest
-from httpx import AsyncClient
+import httpx
 
 
-@pytest.mark.asyncio
-async def test_update_link_url(async_client: AsyncClient, create_test_link):
+def test_update_link_url(test_client: httpx.Client, create_test_link):
     """Test updating a link's original URL"""
     link_data = create_test_link
     short_code = link_data["short_code"]
 
     # Update the link
-    update_response = await async_client.put(
+    update_response = test_client.put(
         f"/api/v1/links/{short_code}", json={"original_url": "https://example.com/updated"}
     )
 
@@ -21,13 +19,12 @@ async def test_update_link_url(async_client: AsyncClient, create_test_link):
     assert updated_data["short_code"] == short_code
 
     # Verify the redirect works with the new URL
-    redirect_response = await async_client.get(f"/api/v1/links/{short_code}", follow_redirects=False)
+    redirect_response = test_client.get(f"/api/v1/links/{short_code}", follow_redirects=False)
     assert redirect_response.status_code == 307
     assert redirect_response.headers["location"] == "https://example.com/updated"
 
 
-@pytest.mark.asyncio
-async def test_update_link_expiration(async_client: AsyncClient, create_test_link):
+def test_update_link_expiration(test_client: httpx.Client, create_test_link):
     """Test updating a link's expiration date"""
     link_data = create_test_link
     short_code = link_data["short_code"]
@@ -36,7 +33,7 @@ async def test_update_link_expiration(async_client: AsyncClient, create_test_lin
     expires_at = (datetime.datetime.now() + datetime.timedelta(hours=1)).isoformat()
 
     # Update the link
-    update_response = await async_client.put(
+    update_response = test_client.put(
         f"/api/v1/links/{short_code}", json={"original_url": "https://example.com", "expires_at": expires_at}
     )
 
@@ -45,22 +42,18 @@ async def test_update_link_expiration(async_client: AsyncClient, create_test_lin
     assert updated_data["expires_at"] is not None
 
 
-@pytest.mark.asyncio
-async def test_update_nonexistent_link(async_client: AsyncClient):
+def test_update_nonexistent_link(test_client: httpx.Client):
     """Test updating a nonexistent link"""
-    update_response = await async_client.put(
-        "/api/v1/links/nonexistent", json={"original_url": "https://example.com/updated"}
-    )
+    update_response = test_client.put("/api/v1/links/nonexistent", json={"original_url": "https://example.com/updated"})
 
     assert update_response.status_code == 404  # Not found
 
 
-@pytest.mark.asyncio
-async def test_update_with_invalid_url(async_client: AsyncClient, create_test_link):
+def test_update_with_invalid_url(test_client: httpx.Client, create_test_link):
     """Test updating a link with an invalid URL"""
     link_data = create_test_link
     short_code = link_data["short_code"]
 
-    update_response = await async_client.put(f"/api/v1/links/{short_code}", json={"original_url": "not-a-valid-url"})
+    update_response = test_client.put(f"/api/v1/links/{short_code}", json={"original_url": "not-a-valid-url"})
 
     assert update_response.status_code == 422  # Validation error

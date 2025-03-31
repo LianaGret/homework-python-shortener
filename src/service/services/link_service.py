@@ -2,6 +2,7 @@ from datetime import datetime
 from typing import Optional
 
 from fastapi import Request
+from pydantic import HttpUrl
 
 from service.common.shortcode_generator import generate_short_code
 from service.core.exceptions import DuplicateAliasException, LinkNotFoundException
@@ -24,14 +25,14 @@ class LinkService:
 
         link = await self.repository.create(
             short_code=short_code,
-            original_url=link_data.original_url,
+            original_url=link_data.original_url.encoded_string(),
             custom_alias=bool(link_data.custom_alias),
             expires_at=link_data.expires_at,
         )
 
         return LinkResponse(
             short_code=link.short_code,
-            original_url=link.original_url,
+            original_url=HttpUrl(link.original_url),
             created_at=link.created_at,
             expires_at=link.expires_at,
             custom_alias=link.custom_alias,
@@ -43,9 +44,11 @@ class LinkService:
         if not link:
             raise LinkNotFoundException(f"Link with short code '{short_code}' not found")
 
-        if link.expires_at and link.expires_at < datetime.now():
-            await self.repository.delete(link.id)
-            raise LinkNotFoundException(f"Link with short code '{short_code}' has expired")
+        if link.expires_at:
+            now = datetime.now(link.expires_at.tzinfo)
+            if link.expires_at < now:
+                await self.repository.delete(link.id)
+                raise LinkNotFoundException(f"Link with short code '{short_code}' has expired")
 
         if request:
             user_agent = request.headers.get("user-agent", "")
@@ -69,16 +72,22 @@ class LinkService:
     async def update_link(self, short_code: str, link_data: LinkUpdate) -> LinkResponse:
         """Update a shortened link"""
         link = await self.repository.get_by_short_code(short_code)
+
+        if link_data.expires_at:
+            now = datetime.now(link_data.expires_at.tzinfo)
+            if link_data.expires_at <= now:
+                raise ValueError("Expiration date must be in the future")
+
         if not link:
             raise LinkNotFoundException(f"Link with short code '{short_code}' not found")
 
         updated_link = await self.repository.update(
-            link_id=link.id, original_url=link_data.original_url, expires_at=link_data.expires_at
+            link_id=link.id, original_url=link_data.original_url.encoded_string(), expires_at=link_data.expires_at
         )
 
         return LinkResponse(
             short_code=updated_link.short_code,
-            original_url=updated_link.original_url,
+            original_url=HttpUrl(updated_link.original_url),
             created_at=updated_link.created_at,
             expires_at=updated_link.expires_at,
             custom_alias=updated_link.custom_alias,
@@ -95,7 +104,7 @@ class LinkService:
 
         return LinkStats(
             short_code=link.short_code,
-            original_url=link.original_url,
+            original_url=HttpUrl(link.original_url),
             created_at=link.created_at,
             visit_count=visit_count,
             last_visited_at=last_visit,
@@ -106,11 +115,11 @@ class LinkService:
         links = await self.repository.find_by_original_url(original_url)
 
         return LinkSearchResponse(
-            original_url=original_url,
+            original_url=HttpUrl(original_url),
             links=[
                 LinkResponse(
                     short_code=link.short_code,
-                    original_url=link.original_url,
+                    original_url=HttpUrl(link.original_url),
                     created_at=link.created_at,
                     expires_at=link.expires_at,
                     custom_alias=link.custom_alias,

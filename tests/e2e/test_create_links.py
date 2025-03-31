@@ -5,7 +5,7 @@ import httpx
 
 def test_create_basic_link(test_client: httpx.Client):
     """Test creating a basic link without custom alias or expiration"""
-    response = test_client.post("/api/v1/links/shorten", json={"original_url": "https://example.com"})
+    response = test_client.post("/api/v1/links/shorten", json={"original_url": "https://example.com/"})
 
     assert response.status_code == 201
     data = response.json()
