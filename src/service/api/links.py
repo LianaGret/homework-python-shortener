@@ -1,4 +1,3 @@
-
 from fastapi import APIRouter, Depends, Query, Response
 from fastapi.responses import RedirectResponse
 

@@ -10,6 +10,10 @@ from service.models.schemas.link import LinkCreate, LinkResponse, LinkSearchResp
 from service.repositories.links.repository import LinkRepository
 
 
+def get_link_repository(db: AsyncSession = Depends(get_db)) -> LinkRepository:
+    return LinkRepository(db)
+
+
 class LinkService:
     def __init__(self, repository: LinkRepository = Depends(get_link_repository)):
         self.repository = repository
