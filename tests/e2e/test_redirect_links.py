@@ -6,10 +6,9 @@ def test_redirect_to_original_url(test_client: httpx.Client, create_test_link):
     link_data = create_test_link
     short_code = link_data["short_code"]
 
-    # Get the redirect response
     response = test_client.get(f"/api/v1/links/{short_code}", follow_redirects=False)
 
-    assert response.status_code == 307  # Temporary redirect
+    assert response.status_code == 307
     assert response.headers["location"] == "https://example.com"
 
 
@@ -17,7 +16,7 @@ def test_redirect_nonexistent_link(test_client: httpx.Client):
     """Test redirecting to a nonexistent link"""
     response = test_client.get("/api/v1/links/nonexistent", follow_redirects=False)
 
-    assert response.status_code == 404  # Not found
+    assert response.status_code == 404
 
 
 def test_redirect_updates_visit_count(test_client: httpx.Client, create_test_link):
@@ -25,15 +24,12 @@ def test_redirect_updates_visit_count(test_client: httpx.Client, create_test_lin
     link_data = create_test_link
     short_code = link_data["short_code"]
 
-    # Get initial stats
     initial_stats_response = test_client.get(f"/api/v1/links/{short_code}/stats")
     initial_stats = initial_stats_response.json()
     initial_count = initial_stats["visit_count"]
 
-    # Visit the link
     test_client.get(f"/api/v1/links/{short_code}", follow_redirects=False)
 
-    # Get updated stats
     updated_stats_response = test_client.get(f"/api/v1/links/{short_code}/stats")
     updated_stats = updated_stats_response.json()
     updated_count = updated_stats["visit_count"]
@@ -47,8 +43,7 @@ def test_redirect_custom_alias(test_client: httpx.Client, create_custom_link):
     link_data = create_custom_link
     short_code = link_data["short_code"]
 
-    # Get the redirect response
     response = test_client.get(f"/api/v1/links/{short_code}", follow_redirects=False)
 
-    assert response.status_code == 307  # Temporary redirect
+    assert response.status_code == 307
     assert response.headers["location"] == "https://example.com/custom"

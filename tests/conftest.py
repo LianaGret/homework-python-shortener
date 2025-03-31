@@ -11,19 +11,16 @@ def test_client() -> httpx.Client:
         yield client
 
 
-# Helper function to generate random strings
 def generate_random_string(length=8):
     return "".join(random.choice(string.ascii_letters) for _ in range(length))
 
 
-# Fixture to create a test link
 @pytest.fixture
 def create_test_link(test_client: httpx.Client):
     response = test_client.post("/api/v1/links/shorten", json={"original_url": "https://example.com"})
     return response.json()
 
 
-# Fixture to create a test link with custom alias
 @pytest.fixture
 async def create_custom_link(test_client: httpx.Client):
     custom_alias = generate_random_string(8)

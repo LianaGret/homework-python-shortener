@@ -8,7 +8,6 @@ def test_update_link_url(test_client: httpx.Client, create_test_link):
     link_data = create_test_link
     short_code = link_data["short_code"]
 
-    # Update the link
     update_response = test_client.put(
         f"/api/v1/links/{short_code}", json={"original_url": "https://example.com/updated"}
     )
@@ -18,7 +17,6 @@ def test_update_link_url(test_client: httpx.Client, create_test_link):
     assert updated_data["original_url"] == "https://example.com/updated"
     assert updated_data["short_code"] == short_code
 
-    # Verify the redirect works with the new URL
     redirect_response = test_client.get(f"/api/v1/links/{short_code}", follow_redirects=False)
     assert redirect_response.status_code == 307
     assert redirect_response.headers["location"] == "https://example.com/updated"
@@ -29,10 +27,8 @@ def test_update_link_expiration(test_client: httpx.Client, create_test_link):
     link_data = create_test_link
     short_code = link_data["short_code"]
 
-    # Set expiration to 1 hour from now
     expires_at = (datetime.datetime.now() + datetime.timedelta(hours=1)).isoformat()
 
-    # Update the link
     update_response = test_client.put(
         f"/api/v1/links/{short_code}", json={"original_url": "https://example.com", "expires_at": expires_at}
     )
@@ -46,7 +42,7 @@ def test_update_nonexistent_link(test_client: httpx.Client):
     """Test updating a nonexistent link"""
     update_response = test_client.put("/api/v1/links/nonexistent", json={"original_url": "https://example.com/updated"})
 
-    assert update_response.status_code == 404  # Not found
+    assert update_response.status_code == 404
 
 
 def test_update_with_invalid_url(test_client: httpx.Client, create_test_link):
@@ -56,4 +52,4 @@ def test_update_with_invalid_url(test_client: httpx.Client, create_test_link):
 
     update_response = test_client.put(f"/api/v1/links/{short_code}", json={"original_url": "not-a-valid-url"})
 
-    assert update_response.status_code == 422  # Validation error
+    assert update_response.status_code == 422
