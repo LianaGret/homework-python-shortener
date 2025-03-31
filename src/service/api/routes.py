@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends, Query, Response
 from fastapi.responses import RedirectResponse
 
-from service.api.app import LinkService
 from service.api.dependencies import get_link_service
 from service.models.schemas.link import LinkCreate, LinkResponse, LinkSearchResponse, LinkStats, LinkUpdate
+from service.services.link_service import LinkService
 
 
 router = APIRouter(prefix="/links", tags=["Links"])

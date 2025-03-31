@@ -1,21 +1,16 @@
 from datetime import datetime
 from typing import Optional
 
-from fastapi import Depends, Request
+from fastapi import Request
 
-from service.api.dependencies import get_link_repository
 from service.common.shortcode_generator import generate_short_code
 from service.core.exceptions import DuplicateAliasException, LinkNotFoundException
 from service.models.schemas.link import LinkCreate, LinkResponse, LinkSearchResponse, LinkStats, LinkUpdate
-from service.repositories.links.repository import LinkRepository
-
-
-def get_link_repository(db: AsyncSession = Depends(get_db)) -> LinkRepository:
-    return LinkRepository(db)
+from service.repositories.links import LinkRepository
 
 
 class LinkService:
-    def __init__(self, repository: LinkRepository = Depends(get_link_repository)):
+    def __init__(self, repository: LinkRepository):
         self.repository = repository
 
     async def create_link(self, link_data: LinkCreate) -> LinkResponse:
