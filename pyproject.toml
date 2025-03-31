@@ -1,0 +1,47 @@
+[tool.poetry]
+name = "service"
+version = "0.1.0"
+description = ""
+authors = ["sepilipenko <sepilipenko@ozon.ru>"]
+packages = [{include = "service", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+fastapi = "^0.115.12"
+uvicorn = "^0.34.0"
+redis = "^5.2.1"
+sqlalchemy = "^2.0.40"
+psycopg2-binary = "^2.9.10"
+pydantic-settings = "^2.8.1"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.11.2"
+
+[tool.ruff]
+lint.select = ["E", "F", "I", "B"]
+line-length = 120
+target-version = "py311"
+
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "__pypackages__",
+    "dist",
+    "node_modules",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+known-first-party = ["src"]
+force-single-line = false
+lines-after-imports = 2
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
